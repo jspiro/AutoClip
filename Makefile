@@ -14,6 +14,7 @@ build:
 	@mkdir -p $(CONTENTS)/MacOS
 	@cp $(PLIST) $(CONTENTS)/
 	@cp $$(swift build -c release --show-bin-path)/$(APP_NAME) $(CONTENTS)/MacOS/
+	@codesign -s - $(BUNDLE)
 	@echo "Built $(BUNDLE)"
 
 install: build
