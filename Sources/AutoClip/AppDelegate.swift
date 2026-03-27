@@ -5,24 +5,30 @@ class AppDelegate: NSObject, NSApplicationDelegate,
     UNUserNotificationCenterDelegate
 {
     let preferences = PreferencesManager()
+    var statusItem: NSStatusItem!
     private var watcherManager: WatcherManager!
     private var statusBarController: StatusBarController!
     private var settingsWindowManager: SettingsWindowManager!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Request notification permission at launch
-        let center = UNUserNotificationCenter.current()
-        center.delegate = self
-        center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
-            NSLog("ClipWatch: notifications %@", granted ? "granted" : "denied")
-            if granted {
-                self.sendWelcomeNotificationIfNeeded(center)
+        if Bundle.main.bundleIdentifier != nil {
+            let center = UNUserNotificationCenter.current()
+            center.delegate = self
+            center.requestAuthorization(options: [.alert, .sound]) {
+                granted, _ in
+                NSLog(
+                    "AutoClip: notifications %@",
+                    granted ? "granted" : "denied")
+                if granted {
+                    self.sendWelcomeNotificationIfNeeded(center)
+                }
             }
         }
 
         watcherManager = WatcherManager(preferences: preferences)
         settingsWindowManager = SettingsWindowManager(preferences: preferences)
         statusBarController = StatusBarController(
+            statusItem: statusItem,
             preferences: preferences,
             watcherManager: watcherManager,
             settingsWindowManager: settingsWindowManager
@@ -37,7 +43,7 @@ class AppDelegate: NSObject, NSApplicationDelegate,
         UserDefaults.standard.set(true, forKey: key)
 
         let content = UNMutableNotificationContent()
-        content.title = "ClipWatch is running"
+        content.title = "AutoClip is running"
         let dirs = preferences.watchDirectories
             .map { ($0 as NSString).lastPathComponent }
             .joined(separator: ", ")
@@ -50,7 +56,19 @@ class AppDelegate: NSObject, NSApplicationDelegate,
         center.add(request)
     }
 
-    // Show notifications even when the app is running
+    private var hasFinishedFirstLaunch = false
+
+    func applicationShouldHandleReopen(
+        _ sender: NSApplication, hasVisibleWindows flag: Bool
+    ) -> Bool {
+        guard hasFinishedFirstLaunch else {
+            hasFinishedFirstLaunch = true
+            return false
+        }
+        settingsWindowManager.show()
+        return false
+    }
+
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,

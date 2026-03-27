@@ -2,33 +2,25 @@ import Cocoa
 
 /// Owns the NSStatusItem (menu bar icon) and builds the dropdown menu.
 class StatusBarController: NSObject, NSMenuDelegate {
-    private var statusItem: NSStatusItem!
+    deinit { NSLog("AutoClip: StatusBarController DEALLOCATED") }
+
+    // Status item is created in main.swift and passed in
+    private var statusItem: NSStatusItem
     private let preferences: PreferencesManager
     private let watcherManager: WatcherManager
     private let settingsWindowManager: SettingsWindowManager
 
     init(
+        statusItem: NSStatusItem,
         preferences: PreferencesManager,
         watcherManager: WatcherManager,
         settingsWindowManager: SettingsWindowManager
     ) {
+        self.statusItem = statusItem
         self.preferences = preferences
         self.watcherManager = watcherManager
         self.settingsWindowManager = settingsWindowManager
         super.init()
-
-        statusItem = NSStatusBar.system.statusItem(
-            withLength: NSStatusItem.squareLength)
-
-        if let button = statusItem.button {
-            if let image = NSImage(
-                systemSymbolName: "doc.on.clipboard",
-                accessibilityDescription: "ClipWatch")
-            {
-                image.isTemplate = true
-                button.image = image
-            }
-        }
 
         let menu = NSMenu()
         menu.delegate = self
@@ -95,7 +87,7 @@ class StatusBarController: NSObject, NSMenuDelegate {
 
         menu.addItem(
             NSMenuItem(
-                title: "Quit ClipWatch",
+                title: "Quit AutoClip",
                 action: #selector(NSApplication.terminate(_:)),
                 keyEquivalent: "q"))
     }
@@ -118,7 +110,7 @@ class StatusBarController: NSObject, NSMenuDelegate {
 
     @objc private func checkForUpdates() {
         // TODO: wire to UpdaterManager in step 5
-        NSLog("ClipWatch: check for updates not yet implemented")
+        NSLog("AutoClip: check for updates not yet implemented")
     }
 
     // MARK: - Helpers

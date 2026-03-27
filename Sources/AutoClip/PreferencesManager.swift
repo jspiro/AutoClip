@@ -1,10 +1,10 @@
 import Foundation
 import ServiceManagement
 
-/// Centralized UserDefaults wrapper for all ClipWatch settings.
+/// Centralized UserDefaults wrapper for all AutoClip settings.
 /// Posts `PreferencesManager.didChange` when settings are modified.
 class PreferencesManager {
-    static let didChange = Notification.Name("ClipWatchPreferencesDidChange")
+    static let didChange = Notification.Name("AutoClipPreferencesDidChange")
 
     static let defaultExtensions: Set<String> = [
         "png", "jpg", "jpeg", "tiff", "heic", "gif", "webp",
@@ -107,7 +107,7 @@ class PreferencesManager {
                 }
             } catch {
                 NSLog(
-                    "ClipWatch: login item error: %@",
+                    "AutoClip: login item error: %@",
                     error.localizedDescription)
             }
         }

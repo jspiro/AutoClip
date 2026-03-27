@@ -1,4 +1,4 @@
-# ClipWatch
+# AutoClip
 
 A tiny macOS app that watches folders for new files and automatically copies them to the clipboard — both the **file** (for pasting into Finder, Slack, etc.) and the **full path** (for `pbpaste` in the terminal).
 
@@ -18,22 +18,22 @@ By default it watches your screenshot folder. Zero CPU usage between events.
 Requires Xcode Command Line Tools (`xcode-select --install`).
 
 ```sh
-git clone https://github.com/jspiro/ClipWatch.git
-cd ClipWatch
+git clone https://github.com/jspiro/AutoClip.git
+cd AutoClip
 make install
 ```
 
-Then open `~/Applications/ClipWatch.app` and approve the Desktop access prompt if shown.
+Then open `~/Applications/AutoClip.app` and approve the Desktop access prompt if shown.
 
-To start on login: **System Settings > General > Login Items > "+" > select ClipWatch.app**
+To start on login: **System Settings > General > Login Items > "+" > select AutoClip.app**
 
 ### From release
 
-Download the latest `.app` from [Releases](https://github.com/jspiro/ClipWatch/releases), move it to `~/Applications/`, and open it.
+Download the latest `.app` from [Releases](https://github.com/jspiro/AutoClip/releases), move it to `~/Applications/`, and open it.
 
 ## Usage
 
-Take a screenshot (`Cmd+Shift+3`, `Cmd+Shift+4`, or `Cmd+Shift+5`), or drop a file into a watched folder. ClipWatch handles the rest:
+Take a screenshot (`Cmd+Shift+3`, `Cmd+Shift+4`, or `Cmd+Shift+5`), or drop a file into a watched folder. AutoClip handles the rest:
 
 - **`pbpaste`** in terminal returns the full file path
 - **`Cmd+V` in Finder** pastes a copy of the file
@@ -43,12 +43,12 @@ Take a screenshot (`Cmd+Shift+3`, `Cmd+Shift+4`, or `Cmd+Shift+5`), or drop a fi
 
 ### Watch directories
 
-By default, ClipWatch watches your macOS screenshot save location (from `com.apple.screencapture`, usually `~/Desktop`).
+By default, AutoClip watches your macOS screenshot save location (from `com.apple.screencapture`, usually `~/Desktop`).
 
 To watch custom directories:
 
 ```sh
-defaults write net.lostinrecursion.ClipWatch WatchDirectories -array \
+defaults write net.lostinrecursion.AutoClip WatchDirectories -array \
   ~/Desktop/Screenshots \
   ~/Downloads
 ```
@@ -60,13 +60,13 @@ By default: `png`, `jpg`, `jpeg`, `tiff`, `heic`, `gif`, `webp`, `pdf`, `mov`, `
 To customize:
 
 ```sh
-defaults write net.lostinrecursion.ClipWatch Extensions -array png jpg pdf
+defaults write net.lostinrecursion.AutoClip Extensions -array png jpg pdf
 ```
 
 ### Reset to defaults
 
 ```sh
-defaults delete net.lostinrecursion.ClipWatch
+defaults delete net.lostinrecursion.AutoClip
 ```
 
 ## Uninstall
@@ -78,7 +78,7 @@ make uninstall
 Or manually:
 
 1. Remove from Login Items in System Settings
-2. Delete `~/Applications/ClipWatch.app`
+2. Delete `~/Applications/AutoClip.app`
 
 ## Requirements
 

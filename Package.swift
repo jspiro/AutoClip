@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "ClipWatch",
+    name: "AutoClip",
     platforms: [.macOS(.v13)],
     dependencies: [
         .package(
@@ -12,9 +12,9 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "ClipWatch",
+            name: "AutoClip",
             dependencies: ["Settings"],
-            path: "Sources/ClipWatch"
+            path: "Sources/AutoClip"
         ),
     ]
 )

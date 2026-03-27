@@ -4,6 +4,7 @@ import Settings
 extension Settings.PaneIdentifier {
     static let general = Self("general")
     static let fileTypes = Self("fileTypes")
+    static let about = Self("about")
 }
 
 /// Manages the preferences window lifecycle and the activation policy dance
@@ -30,10 +31,21 @@ class SettingsWindowManager {
             FileTypesSettingsView(preferences: preferences)
         }
 
+        let aboutPane = Settings.Pane(
+            identifier: .about,
+            title: "About",
+            toolbarIcon: NSImage(
+                systemSymbolName: "info.circle",
+                accessibilityDescription: "About")!
+        ) {
+            AboutSettingsView()
+        }
+
         return SettingsWindowController(
             panes: [
                 generalPane.asSettingsPane(),
                 fileTypesPane.asSettingsPane(),
+                aboutPane.asSettingsPane(),
             ],
             style: .toolbarItems
         )

@@ -20,7 +20,7 @@ class DirectoryWatcher {
     func start() {
         let fd = open(directory, O_EVTONLY)
         guard fd >= 0 else {
-            NSLog("ClipWatch: cannot open %@", directory)
+            NSLog("AutoClip: cannot open %@", directory)
             return
         }
 
@@ -41,7 +41,7 @@ class DirectoryWatcher {
 
         source?.setCancelHandler { close(fd) }
         source?.resume()
-        NSLog("ClipWatch: watching %@", directory)
+        NSLog("AutoClip: watching %@", directory)
     }
 
     func stop() {
@@ -85,7 +85,7 @@ class DirectoryWatcher {
 
         let filename = URL(fileURLWithPath: fullPath).lastPathComponent
         showNotification(filename: filename)
-        NSLog("ClipWatch: copied %@", filename)
+        NSLog("AutoClip: copied %@", filename)
 
         onFileCopied?(fullPath)
     }
@@ -102,6 +102,7 @@ class DirectoryWatcher {
     }
 
     private func showNotification(filename: String) {
+        guard Bundle.main.bundleIdentifier != nil else { return }
         let content = UNMutableNotificationContent()
         content.title = "Copied to clipboard"
         content.body = filename

@@ -1,7 +1,7 @@
-APP_NAME = ClipWatch
+APP_NAME = AutoClip
 BUNDLE = build/$(APP_NAME).app
 CONTENTS = $(BUNDLE)/Contents
-PLIST = ClipWatch/Info.plist
+PLIST = AutoClip/Info.plist
 INSTALL_DIR = $(HOME)/Applications
 
 # SPM puts the release binary here
