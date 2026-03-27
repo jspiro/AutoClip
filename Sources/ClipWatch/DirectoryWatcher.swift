@@ -1,4 +1,5 @@
 import Cocoa
+import UserNotifications
 
 /// Watches a single directory for new files using DispatchSource (kqueue).
 /// The process sleeps with zero CPU until the OS signals a directory change.
@@ -25,7 +26,9 @@ class DirectoryWatcher {
 
         source = DispatchSource.makeFileSystemObjectSource(
             fileDescriptor: fd,
-            eventMask: .write,
+            // .write catches most new files; .attrib catches Finder copies
+            // and other operations that modify directory metadata
+            eventMask: [.write, .attrib, .link],
             queue: .main
         )
 
@@ -99,11 +102,14 @@ class DirectoryWatcher {
     }
 
     private func showNotification(filename: String) {
-        let script = "display notification \"\(filename)\" "
-            + "with title \"Copied to clipboard\""
-        let proc = Process()
-        proc.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
-        proc.arguments = ["-e", script]
-        try? proc.run()
+        let content = UNMutableNotificationContent()
+        content.title = "Copied to clipboard"
+        content.body = filename
+
+        let request = UNNotificationRequest(
+            identifier: UUID().uuidString,
+            content: content,
+            trigger: nil)
+        UNUserNotificationCenter.current().add(request)
     }
 }

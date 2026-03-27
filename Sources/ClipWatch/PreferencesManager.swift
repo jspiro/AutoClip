@@ -12,7 +12,14 @@ class PreferencesManager {
     ]
 
     private let defaults = UserDefaults.standard
-    private let maxRecentFiles = 5
+
+    var maxRecentFiles: Int {
+        get {
+            let val = defaults.integer(forKey: "MaxRecentFiles")
+            return val > 0 ? val : 5
+        }
+        set { defaults.set(newValue, forKey: "MaxRecentFiles") }
+    }
 
     // MARK: - Watch Directories
 

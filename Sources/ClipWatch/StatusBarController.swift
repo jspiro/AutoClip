@@ -41,52 +41,55 @@ class StatusBarController: NSObject, NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
 
-        // Title
-        let title = NSMenuItem(title: "ClipWatch", action: nil, keyEquivalent: "")
-        title.isEnabled = false
-        menu.addItem(title)
-        menu.addItem(.separator())
-
-        // Watched directories
-        for dir in preferences.watchDirectories {
-            let displayPath = abbreviatePath(dir)
-            let item = NSMenuItem(
-                title: displayPath, action: nil, keyEquivalent: "")
-            item.state = .on
-            item.isEnabled = false
-            menu.addItem(item)
-        }
-        menu.addItem(.separator())
-
-        // Recently copied
+        // Recently copied files with their source folder
         let recent = preferences.recentlyCopied
         if !recent.isEmpty {
-            let header = NSMenuItem(
-                title: "Recently Copied:", action: nil, keyEquivalent: "")
-            header.isEnabled = false
-            menu.addItem(header)
             for path in recent {
-                let filename = URL(fileURLWithPath: path).lastPathComponent
+                let url = URL(fileURLWithPath: path)
+                let filename = url.lastPathComponent
+                let folder = abbreviatePath(
+                    url.deletingLastPathComponent().path)
                 let item = NSMenuItem(
-                    title: "  \(filename)", action: nil, keyEquivalent: "")
-                item.isEnabled = false
+                    title: filename,
+                    action: #selector(recopyFile(_:)),
+                    keyEquivalent: "")
+                item.target = self
+                item.representedObject = path
+                // Show source folder as subtitle (indented, smaller)
+                let attrTitle = NSMutableAttributedString(string: filename)
+                attrTitle.append(NSAttributedString(
+                    string: "\n\(folder)",
+                    attributes: [
+                        .font: NSFont.systemFont(
+                            ofSize: NSFont.smallSystemFontSize),
+                        .foregroundColor: NSColor.secondaryLabelColor,
+                    ]))
+                item.attributedTitle = attrTitle
                 menu.addItem(item)
             }
+            menu.addItem(.separator())
+        } else {
+            let empty = NSMenuItem(
+                title: "No recent files", action: nil, keyEquivalent: "")
+            empty.isEnabled = false
+            menu.addItem(empty)
             menu.addItem(.separator())
         }
 
         // Actions
-        menu.addItem(
-            NSMenuItem(
-                title: "Preferences\u{2026}",
-                action: #selector(openPreferences),
-                keyEquivalent: ","))
+        let prefsItem = NSMenuItem(
+            title: "Preferences\u{2026}",
+            action: #selector(openPreferences),
+            keyEquivalent: ",")
+        prefsItem.target = self
+        menu.addItem(prefsItem)
 
-        menu.addItem(
-            NSMenuItem(
-                title: "Check for Updates\u{2026}",
-                action: #selector(checkForUpdates),
-                keyEquivalent: ""))
+        let updateItem = NSMenuItem(
+            title: "Check for Updates\u{2026}",
+            action: #selector(checkForUpdates),
+            keyEquivalent: "")
+        updateItem.target = self
+        menu.addItem(updateItem)
 
         menu.addItem(.separator())
 
@@ -98,6 +101,16 @@ class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     // MARK: - Actions
+
+    @objc private func recopyFile(_ sender: NSMenuItem) {
+        guard let path = sender.representedObject as? String else { return }
+        let url = URL(fileURLWithPath: path)
+        let pb = NSPasteboard.general
+        pb.clearContents()
+        pb.writeObjects([url as NSURL])
+        pb.addTypes([.string], owner: nil)
+        pb.setString(path, forType: .string)
+    }
 
     @objc private func openPreferences() {
         settingsWindowManager.show()

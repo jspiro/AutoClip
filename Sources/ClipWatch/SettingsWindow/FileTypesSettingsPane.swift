@@ -9,52 +9,52 @@ struct FileTypesSettingsView: View {
     }
 
     var body: some View {
-        Form {
-            Section("Watch for") {
-                Picker("", selection: $viewModel.watchAllFiles) {
-                    Text("All files").tag(true)
-                    Text("Only specific extensions").tag(false)
-                }
-                .pickerStyle(.radioGroup)
-                .labelsHidden()
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Watch for")
+                .font(.headline)
 
-                if !viewModel.watchAllFiles {
-                    // Extension chips in a wrapping layout
-                    FlowLayout(spacing: 6) {
-                        ForEach(viewModel.sortedExtensions, id: \.self) {
-                            ext in
-                            ExtensionChip(
-                                ext: ext,
-                                onRemove: {
-                                    viewModel.removeExtension(ext)
-                                })
-                        }
+            Picker("", selection: $viewModel.watchAllFiles) {
+                Text("All files").tag(true)
+                Text("Only specific extensions").tag(false)
+            }
+            .pickerStyle(.radioGroup)
+            .labelsHidden()
+
+            if !viewModel.watchAllFiles {
+                FlowLayout(spacing: 6) {
+                    ForEach(viewModel.sortedExtensions, id: \.self) {
+                        ext in
+                        ExtensionChip(
+                            ext: ext,
+                            onRemove: {
+                                viewModel.removeExtension(ext)
+                            })
                     }
-                    .frame(minHeight: 30)
+                }
+                .frame(minHeight: 30)
 
-                    HStack {
-                        TextField("e.g. png", text: $viewModel.newExtension)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 100)
-                            .onSubmit { viewModel.addExtension() }
+                HStack {
+                    TextField("e.g. png", text: $viewModel.newExtension)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 100)
+                        .onSubmit { viewModel.addExtension() }
 
-                        Button("Add") { viewModel.addExtension() }
-                            .disabled(
-                                viewModel.newExtension
-                                    .trimmingCharacters(in: .whitespaces)
-                                    .isEmpty)
+                    Button("Add") { viewModel.addExtension() }
+                        .disabled(
+                            viewModel.newExtension
+                                .trimmingCharacters(in: .whitespaces)
+                                .isEmpty)
 
-                        Spacer()
+                    Spacer()
 
-                        Button("Reset to Defaults") {
-                            viewModel.resetExtensions()
-                        }
+                    Button("Reset to Defaults") {
+                        viewModel.resetExtensions()
                     }
                 }
             }
         }
-        .formStyle(.grouped)
-        .frame(width: 450, height: 280)
+        .padding(20)
+        .frame(width: 450, height: 250, alignment: .topLeading)
     }
 }
 
