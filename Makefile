@@ -11,8 +11,9 @@ SPM_BIN = $(shell swift build -c release --show-bin-path 2>/dev/null)
 
 build:
 	swift build -c release
-	@mkdir -p $(CONTENTS)/MacOS
+	@mkdir -p $(CONTENTS)/MacOS $(CONTENTS)/Resources
 	@cp $(PLIST) $(CONTENTS)/
+	@cp AutoClip/Resources/AppIcon.icns $(CONTENTS)/Resources/
 	@cp $$(swift build -c release --show-bin-path)/$(APP_NAME) $(CONTENTS)/MacOS/
 	@codesign -s - $(BUNDLE)
 	@echo "Built $(BUNDLE)"
