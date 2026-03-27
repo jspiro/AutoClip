@@ -1,67 +1,19 @@
 import Cocoa
 
-/// ClipWatch — watches folders for new files and copies them to the clipboard.
-///
-/// Uses DispatchSource (kqueue) per directory. The process sleeps with zero
-/// CPU usage until the OS signals a change in a watched directory.
-
-// MARK: - Configuration
-
-/// File extensions to watch for (case-insensitive).
-let defaultExtensions: Set<String> = [
-    "png", "jpg", "jpeg", "tiff", "heic", "gif", "webp",
-    "pdf", "mov", "mp4",
-]
-
-/// Returns the list of directories to watch.
-///
-/// Configure with:
-///   defaults write net.lostinrecursion.ClipWatch WatchDirectories \
-///     -array ~/Desktop/Screenshots ~/Downloads
-///
-/// Default: whatever macOS is configured to save screenshots to.
-func watchDirectories() -> [String] {
-    let defaults = UserDefaults.standard
-
-    if let custom = defaults.stringArray(forKey: "WatchDirectories"), !custom.isEmpty {
-        return custom.map { ($0 as NSString).expandingTildeInPath }
-    }
-
-    // Default to macOS screenshot location
-    if let loc = UserDefaults(suiteName: "com.apple.screencapture")?
-        .string(forKey: "location")
-    {
-        return [(loc as NSString).expandingTildeInPath]
-    }
-
-    return [("~/Desktop" as NSString).expandingTildeInPath]
-}
-
-/// Returns the set of file extensions to watch for.
-///
-/// Configure with:
-///   defaults write net.lostinrecursion.ClipWatch Extensions -array png jpg pdf
-///
-/// Default: common image/video/document extensions.
-func watchExtensions() -> Set<String> {
-    let defaults = UserDefaults.standard
-    if let custom = defaults.stringArray(forKey: "Extensions"), !custom.isEmpty {
-        return Set(custom.map { $0.lowercased() })
-    }
-    return defaultExtensions
-}
-
-// MARK: - Watcher
-
+/// Watches a single directory for new files using DispatchSource (kqueue).
+/// The process sleeps with zero CPU until the OS signals a directory change.
 class DirectoryWatcher {
     private var source: DispatchSourceFileSystemObject?
     private var lastProcessed = ""
     private let directory: String
-    private let extensions: Set<String>
+    private let preferences: PreferencesManager
 
-    init(directory: String, extensions: Set<String>) {
+    /// Called on the main queue when a new file is copied to the clipboard.
+    var onFileCopied: ((String) -> Void)?
+
+    init(directory: String, preferences: PreferencesManager) {
         self.directory = directory
-        self.extensions = extensions
+        self.preferences = preferences
     }
 
     func start() {
@@ -89,17 +41,26 @@ class DirectoryWatcher {
         NSLog("ClipWatch: watching %@", directory)
     }
 
+    func stop() {
+        source?.cancel()
+        source = nil
+    }
+
     private func processNewest() {
         let fm = FileManager.default
         guard let files = try? fm.contentsOfDirectory(atPath: directory) else {
             return
         }
 
+        let extensions = preferences.activeExtensions
+
         // Find the newest matching file by modification date
         let newest = files
-            .filter {
-                extensions.contains(
-                    ($0 as NSString).pathExtension.lowercased())
+            .filter { name in
+                // When watchAllFiles is true, extensions is nil — accept everything
+                guard let exts = extensions else { return true }
+                return exts.contains(
+                    (name as NSString).pathExtension.lowercased())
             }
             .compactMap { name -> (String, Date)? in
                 let path = (directory as NSString)
@@ -122,6 +83,8 @@ class DirectoryWatcher {
         let filename = URL(fileURLWithPath: fullPath).lastPathComponent
         showNotification(filename: filename)
         NSLog("ClipWatch: copied %@", filename)
+
+        onFileCopied?(fullPath)
     }
 
     /// Puts the file on the clipboard (like Finder's Cmd+C) and adds the
@@ -144,21 +107,3 @@ class DirectoryWatcher {
         try? proc.run()
     }
 }
-
-// MARK: - Entry point
-
-let dirs = watchDirectories()
-let exts = watchExtensions()
-
-if dirs.isEmpty {
-    NSLog("ClipWatch: no directories to watch")
-    exit(1)
-}
-
-for dir in dirs {
-    let watcher = DirectoryWatcher(directory: dir, extensions: exts)
-    watcher.start()
-}
-
-// LSUIElement app — no dock icon, just runs in background
-NSApplication.shared.run()
