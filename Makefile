@@ -1,18 +1,21 @@
-APP_NAME = ClipWatch
+APP_NAME = AutoClip
 BUNDLE = build/$(APP_NAME).app
-BINARY = $(BUNDLE)/Contents/MacOS/$(APP_NAME)
-SRC = $(APP_NAME)/main.swift
-PLIST = $(APP_NAME)/Info.plist
+CONTENTS = $(BUNDLE)/Contents
+PLIST = AutoClip/Info.plist
 INSTALL_DIR = $(HOME)/Applications
+
+# SPM puts the release binary here
+SPM_BIN = $(shell swift build -c release --show-bin-path 2>/dev/null)
 
 .PHONY: build install uninstall run clean
 
-build: $(BINARY)
-
-$(BINARY): $(SRC) $(PLIST)
-	@mkdir -p $(BUNDLE)/Contents/MacOS
-	@cp $(PLIST) $(BUNDLE)/Contents/
-	swiftc -O -o $(BINARY) $(SRC) -framework Cocoa
+build:
+	swift build -c release
+	@mkdir -p $(CONTENTS)/MacOS $(CONTENTS)/Resources
+	@cp $(PLIST) $(CONTENTS)/
+	@cp AutoClip/Resources/AppIcon.icns $(CONTENTS)/Resources/
+	@cp $$(swift build -c release --show-bin-path)/$(APP_NAME) $(CONTENTS)/MacOS/
+	@codesign -s - $(BUNDLE)
 	@echo "Built $(BUNDLE)"
 
 install: build
@@ -32,3 +35,4 @@ run: build
 
 clean:
 	rm -rf build
+	swift package clean

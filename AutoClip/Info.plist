@@ -4,13 +4,13 @@
 <plist version="1.0">
 <dict>
   <key>CFBundleExecutable</key>
-  <string>ClipWatch</string>
+  <string>AutoClip</string>
   <key>CFBundleIdentifier</key>
-  <string>net.lostinrecursion.ClipWatch</string>
+  <string>net.lostinrecursion.AutoClip</string>
   <key>CFBundleName</key>
-  <string>ClipWatch</string>
+  <string>AutoClip</string>
   <key>CFBundleDisplayName</key>
-  <string>ClipWatch</string>
+  <string>AutoClip</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleShortVersionString</key>
@@ -19,6 +19,8 @@
   <string>1</string>
   <key>LSMinimumSystemVersion</key>
   <string>13.0</string>
+  <key>CFBundleIconFile</key>
+  <string>AppIcon</string>
   <key>LSUIElement</key>
   <true/>
 </dict>
