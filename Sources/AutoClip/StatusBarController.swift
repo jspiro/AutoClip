@@ -76,13 +76,6 @@ class StatusBarController: NSObject, NSMenuDelegate {
         prefsItem.target = self
         menu.addItem(prefsItem)
 
-        let updateItem = NSMenuItem(
-            title: "Check for Updates\u{2026}",
-            action: #selector(checkForUpdates),
-            keyEquivalent: "")
-        updateItem.target = self
-        menu.addItem(updateItem)
-
         menu.addItem(.separator())
 
         menu.addItem(
@@ -106,11 +99,6 @@ class StatusBarController: NSObject, NSMenuDelegate {
 
     @objc private func openPreferences() {
         settingsWindowManager.show()
-    }
-
-    @objc private func checkForUpdates() {
-        // TODO: wire to UpdaterManager in step 5
-        NSLog("AutoClip: check for updates not yet implemented")
     }
 
     // MARK: - Helpers
