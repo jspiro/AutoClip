@@ -6,12 +6,8 @@ app.setActivationPolicy(.accessory)
 // Status item must be created at top level — survives the full app lifecycle
 let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 if let button = statusItem.button {
-    // Custom menu bar icon — try SVG first, then PDF fallback
-    let svgPath = Bundle.main.resourcePath.map { $0 + "/MenuBarIcon.svg" }
-    let pdfPath = Bundle.main.resourcePath.map { $0 + "/MenuBarIcon.pdf" }
-    let iconPath = [svgPath, pdfPath].compactMap { $0 }.first {
-        FileManager.default.fileExists(atPath: $0)
-    }
+    // Custom menu bar icon (SVG template image)
+    let iconPath = Bundle.main.resourcePath.map { $0 + "/MenuBarIcon.svg" }
     if let path = iconPath, let image = NSImage(contentsOfFile: path) {
         image.isTemplate = true
         image.size = NSSize(width: 22, height: 22)
