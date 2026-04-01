@@ -6,6 +6,7 @@ class AppDelegate: NSObject, NSApplicationDelegate,
 {
     let preferences = PreferencesManager()
     var statusItem: NSStatusItem!
+    private var updaterManager: UpdaterManager!
     private var watcherManager: WatcherManager!
     private var statusBarController: StatusBarController!
     private var settingsWindowManager: SettingsWindowManager!
@@ -25,13 +26,16 @@ class AppDelegate: NSObject, NSApplicationDelegate,
             }
         }
 
+        updaterManager = UpdaterManager()
         watcherManager = WatcherManager(preferences: preferences)
-        settingsWindowManager = SettingsWindowManager(preferences: preferences)
+        settingsWindowManager = SettingsWindowManager(
+            preferences: preferences, updaterManager: updaterManager)
         statusBarController = StatusBarController(
             statusItem: statusItem,
             preferences: preferences,
             watcherManager: watcherManager,
-            settingsWindowManager: settingsWindowManager
+            settingsWindowManager: settingsWindowManager,
+            updaterManager: updaterManager
         )
 
         // Mark launch complete so applicationShouldHandleReopen knows

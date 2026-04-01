@@ -16,7 +16,16 @@ build:
 	@cp AutoClip/Resources/AppIcon.icns $(CONTENTS)/Resources/
 	@cp AutoClip/Resources/MenuBarIcon.svg $(CONTENTS)/Resources/
 	@cp $$(swift build -c release --show-bin-path)/$(APP_NAME) $(CONTENTS)/MacOS/
-	@codesign -s - $(BUNDLE)
+	@# Embed Sparkle.framework
+	@mkdir -p $(CONTENTS)/Frameworks
+	@cp -R $$(swift build -c release --show-bin-path)/Sparkle.framework $(CONTENTS)/Frameworks/
+	@rm -rf $(CONTENTS)/Frameworks/Sparkle.framework/Versions/B/XPCServices
+	@install_name_tool -add_rpath @loader_path/../Frameworks $(CONTENTS)/MacOS/$(APP_NAME) 2>/dev/null || true
+	@# Sign inside-out: framework internals → framework → bundle
+	@codesign -f -s - $(CONTENTS)/Frameworks/Sparkle.framework/Versions/B/Autoupdate
+	@codesign -f -s - $(CONTENTS)/Frameworks/Sparkle.framework/Versions/B/Updater.app
+	@codesign -f -s - $(CONTENTS)/Frameworks/Sparkle.framework
+	@codesign -f -s - $(BUNDLE)
 	@echo "Built $(BUNDLE)"
 
 install: build

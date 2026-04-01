@@ -1,10 +1,16 @@
 import Cocoa
+import Sparkle
 import SwiftUI
 
 struct AboutSettingsView: View {
     private let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"]
         as? String ?? "1.0.0"
     private let repoURL = "https://github.com/jspiro/AutoClip"
+    private let updaterController: SPUStandardUpdaterController
+
+    init(updaterController: SPUStandardUpdaterController) {
+        self.updaterController = updaterController
+    }
 
     var body: some View {
         VStack(spacing: 20) {
@@ -25,12 +31,15 @@ struct AboutSettingsView: View {
 
             Divider()
 
-            // Links
-            HStack(spacing: 20) {
+            // Actions
+            HStack(spacing: 12) {
                 Button("Quit AutoClip") {
                     NSApplication.shared.terminate(nil)
                 }
                 Spacer()
+                Button("Check for Updates") {
+                    updaterController.checkForUpdates(nil)
+                }
                 Button("Contribute") {
                     NSWorkspace.shared.open(
                         URL(string: repoURL)!)
@@ -42,6 +51,6 @@ struct AboutSettingsView: View {
             }
         }
         .padding(20)
-        .frame(width: 450, height: 250, alignment: .top)
+        .frame(width: 580, height: 230, alignment: .top)
     }
 }

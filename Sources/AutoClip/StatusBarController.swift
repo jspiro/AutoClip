@@ -1,4 +1,5 @@
 import Cocoa
+import Sparkle
 
 /// Owns the NSStatusItem (menu bar icon) and builds the dropdown menu.
 class StatusBarController: NSObject, NSMenuDelegate {
@@ -9,17 +10,20 @@ class StatusBarController: NSObject, NSMenuDelegate {
     private let preferences: PreferencesManager
     private let watcherManager: WatcherManager
     private let settingsWindowManager: SettingsWindowManager
+    private let updaterManager: UpdaterManager
 
     init(
         statusItem: NSStatusItem,
         preferences: PreferencesManager,
         watcherManager: WatcherManager,
-        settingsWindowManager: SettingsWindowManager
+        settingsWindowManager: SettingsWindowManager,
+        updaterManager: UpdaterManager
     ) {
         self.statusItem = statusItem
         self.preferences = preferences
         self.watcherManager = watcherManager
         self.settingsWindowManager = settingsWindowManager
+        self.updaterManager = updaterManager
         super.init()
 
         let menu = NSMenu()
@@ -75,6 +79,14 @@ class StatusBarController: NSObject, NSMenuDelegate {
             keyEquivalent: ",")
         prefsItem.target = self
         menu.addItem(prefsItem)
+
+        let updateItem = NSMenuItem(
+            title: "Check for Updates",
+            action: #selector(
+                SPUStandardUpdaterController.checkForUpdates(_:)),
+            keyEquivalent: "")
+        updateItem.target = updaterManager.controller
+        menu.addItem(updateItem)
 
         menu.addItem(.separator())
 

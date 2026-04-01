@@ -8,12 +8,14 @@ let package = Package(
         .package(
             url: "https://github.com/sindresorhus/Settings.git",
             from: "3.1.0"),
-        // Step 5: Sparkle for auto-updates
+        .package(
+            url: "https://github.com/sparkle-project/Sparkle.git",
+            from: "2.5.0"),
     ],
     targets: [
         .executableTarget(
             name: "AutoClip",
-            dependencies: ["Settings"],
+            dependencies: ["Settings", "Sparkle"],
             path: "Sources/AutoClip"
         ),
     ]
