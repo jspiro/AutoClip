@@ -9,13 +9,15 @@ SPM_BIN = $(shell swift build -c release --show-bin-path 2>/dev/null)
 
 ICON_SOURCE = $(shell python3 -c "import json; d=json.load(open('AutoClip.icon/icon.json')); print(d['groups'][0]['layers'][0]['image-name'])" 2>/dev/null)
 
-.PHONY: build install uninstall run clean icon
+CODESIGN_IDENTITY = Developer ID Application: Jono Spiro (QZEHRZT694)
 
-build: icon
+.PHONY: build install uninstall run clean icon secrets
+
+build:
 	swift build -c release
 	@mkdir -p $(CONTENTS)/MacOS $(CONTENTS)/Resources
 	@cp $(PLIST) $(CONTENTS)/
-	@cp AutoClip/Resources/AppIcon.icns $(CONTENTS)/Resources/
+	@# AppIcon loaded from Assets.car (compiled by 'icon' target)
 	@cp AutoClip/Resources/MenuBarIcon.svg $(CONTENTS)/Resources/
 	@cp $$(swift build -c release --show-bin-path)/$(APP_NAME) $(CONTENTS)/MacOS/
 	@# Embed Sparkle.framework
@@ -30,7 +32,7 @@ build: icon
 	@codesign -f -s - $(BUNDLE)
 	@echo "Built $(BUNDLE)"
 
-install: build
+install: icon
 	-@pkill -x $(APP_NAME) 2>/dev/null; sleep 0.5
 	@mkdir -p $(INSTALL_DIR)
 	@rm -rf $(INSTALL_DIR)/$(APP_NAME).app
@@ -47,16 +49,27 @@ uninstall:
 run: build
 	open $(BUNDLE)
 
-icon:
-	@rm -rf /tmp/autoclip-iconset.iconset && mkdir /tmp/autoclip-iconset.iconset
-	@SRC="AutoClip.icon/Assets/$(ICON_SOURCE)"; \
-	for s in 16 32 128 256 512; do \
-	  s2=$$((s*2)); \
-	  sips -z $$s $$s "$$SRC" --out "/tmp/autoclip-iconset.iconset/icon_$${s}x$${s}.png" >/dev/null; \
-	  sips -z $$s2 $$s2 "$$SRC" --out "/tmp/autoclip-iconset.iconset/icon_$${s}x$${s}@2x.png" >/dev/null; \
-	done
-	@iconutil -c icns /tmp/autoclip-iconset.iconset -o AutoClip/Resources/AppIcon.icns
-	@echo "Generated AppIcon.icns from AutoClip.icon/Assets/$(ICON_SOURCE)"
+icon: build
+	@# Compile .icon package into Assets.car using Xcode's actool
+	@xcrun actool --compile $(CONTENTS)/Resources \
+	  --platform macosx --minimum-deployment-target 13.0 \
+	  AutoClip.icon >/dev/null
+	@echo "Compiled AutoClip.icon → Assets.car"
+
+secrets:
+	@# Export Developer ID cert and set all GitHub Actions secrets
+	@P12=$$(mktemp /tmp/devid.XXXX.p12); \
+	PASS=$$(openssl rand -base64 24); \
+	security export -t identities -f pkcs12 -k login.keychain \
+	  -P "$$PASS" -o "$$P12"; \
+	base64 -i "$$P12" | gh secret set DEVELOPER_ID_CERT_BASE64; \
+	echo "$$PASS" | gh secret set DEVELOPER_ID_CERT_PASSWORD; \
+	rm -f "$$P12"; \
+	echo "Set DEVELOPER_ID_CERT_BASE64 and DEVELOPER_ID_CERT_PASSWORD"
+	@echo "Now set the remaining secrets manually:"
+	@echo "  gh secret set NOTARIZATION_APPLE_ID"
+	@echo "  gh secret set NOTARIZATION_TEAM_ID"
+	@echo "  gh secret set NOTARIZATION_PASSWORD"
 
 clean:
 	rm -rf build
