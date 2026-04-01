@@ -57,27 +57,29 @@ class DirectoryWatcher {
 
         let extensions = preferences.activeExtensions
 
-        // Find the newest matching file by modification date
+        // Sort by addedToDirectoryDate — the APFS "Date Added" timestamp.
+        // Unlike mtime/ctime, this is always set to "now" when a file
+        // appears in the folder, even for pastes and copies.
         let newest = files
             .filter { name in
-                // When watchAllFiles is true, extensions is nil — accept everything
                 guard let exts = extensions else { return true }
                 return exts.contains(
                     (name as NSString).pathExtension.lowercased())
             }
             .compactMap { name -> (String, Date)? in
-                let path = (directory as NSString)
+                let url = URL(fileURLWithPath: directory)
                     .appendingPathComponent(name)
-                guard let attrs = try? fm.attributesOfItem(atPath: path),
-                    let mod = attrs[.modificationDate] as? Date
+                guard let values = try? url.resourceValues(
+                    forKeys: [.addedToDirectoryDateKey]),
+                    let added = values.addedToDirectoryDate
                 else { return nil }
-                return (path, mod)
+                return (url.path, added)
             }
             .max { $0.1 < $1.1 }
 
-        guard let (fullPath, modDate) = newest else { return }
+        guard let (fullPath, addedDate) = newest else { return }
 
-        let age = Date().timeIntervalSince(modDate)
+        let age = Date().timeIntervalSince(addedDate)
         if fullPath == lastProcessed || age > 5 { return }
         lastProcessed = fullPath
 
