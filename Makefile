@@ -7,9 +7,11 @@ INSTALL_DIR = $(HOME)/Applications
 # SPM puts the release binary here
 SPM_BIN = $(shell swift build -c release --show-bin-path 2>/dev/null)
 
-.PHONY: build install uninstall run clean
+ICON_SOURCE = $(shell python3 -c "import json; d=json.load(open('AutoClip.icon/icon.json')); print(d['groups'][0]['layers'][0]['image-name'])" 2>/dev/null)
 
-build:
+.PHONY: build install uninstall run clean icon
+
+build: icon
 	swift build -c release
 	@mkdir -p $(CONTENTS)/MacOS $(CONTENTS)/Resources
 	@cp $(PLIST) $(CONTENTS)/
@@ -44,6 +46,17 @@ uninstall:
 
 run: build
 	open $(BUNDLE)
+
+icon:
+	@rm -rf /tmp/autoclip-iconset.iconset && mkdir /tmp/autoclip-iconset.iconset
+	@SRC="AutoClip.icon/Assets/$(ICON_SOURCE)"; \
+	for s in 16 32 128 256 512; do \
+	  s2=$$((s*2)); \
+	  sips -z $$s $$s "$$SRC" --out "/tmp/autoclip-iconset.iconset/icon_$${s}x$${s}.png" >/dev/null; \
+	  sips -z $$s2 $$s2 "$$SRC" --out "/tmp/autoclip-iconset.iconset/icon_$${s}x$${s}@2x.png" >/dev/null; \
+	done
+	@iconutil -c icns /tmp/autoclip-iconset.iconset -o AutoClip/Resources/AppIcon.icns
+	@echo "Generated AppIcon.icns from AutoClip.icon/Assets/$(ICON_SOURCE)"
 
 clean:
 	rm -rf build
