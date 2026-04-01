@@ -33,6 +33,10 @@ class AppDelegate: NSObject, NSApplicationDelegate,
             watcherManager: watcherManager,
             settingsWindowManager: settingsWindowManager
         )
+
+        // Mark launch complete so applicationShouldHandleReopen knows
+        // the next reopen is user-initiated, not the initial open.
+        DispatchQueue.main.async { self.hasFinishedFirstLaunch = true }
     }
 
     private func sendWelcomeNotificationIfNeeded(
@@ -61,10 +65,7 @@ class AppDelegate: NSObject, NSApplicationDelegate,
     func applicationShouldHandleReopen(
         _ sender: NSApplication, hasVisibleWindows flag: Bool
     ) -> Bool {
-        guard hasFinishedFirstLaunch else {
-            hasFinishedFirstLaunch = true
-            return false
-        }
+        guard hasFinishedFirstLaunch else { return false }
         settingsWindowManager.show()
         return false
     }
