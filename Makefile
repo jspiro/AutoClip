@@ -14,6 +14,8 @@ build:
 	@mkdir -p $(CONTENTS)/MacOS $(CONTENTS)/Resources
 	@cp $(PLIST) $(CONTENTS)/
 	@cp AutoClip/Resources/AppIcon.icns $(CONTENTS)/Resources/
+	@cp AutoClip/Resources/MenuBarIcon.svg $(CONTENTS)/Resources/
+	@cp AutoClip/Resources/MenuBarIcon.pdf $(CONTENTS)/Resources/
 	@cp $$(swift build -c release --show-bin-path)/$(APP_NAME) $(CONTENTS)/MacOS/
 	@codesign -s - $(BUNDLE)
 	@echo "Built $(BUNDLE)"
