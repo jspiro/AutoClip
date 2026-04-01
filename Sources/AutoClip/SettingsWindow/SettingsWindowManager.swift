@@ -37,8 +37,9 @@ class SettingsWindowManager {
             toolbarIcon: NSImage(
                 systemSymbolName: "info.circle",
                 accessibilityDescription: "About")!
-        ) {
-            AboutSettingsView()
+        ) { [updaterManager] in
+            AboutSettingsView(
+                updaterController: updaterManager!.controller)
         }
 
         return SettingsWindowController(
@@ -52,10 +53,12 @@ class SettingsWindowManager {
     }()
 
     private let preferences: PreferencesManager
+    private let updaterManager: UpdaterManager?
     private var windowCloseObserver: NSObjectProtocol?
 
-    init(preferences: PreferencesManager) {
+    init(preferences: PreferencesManager, updaterManager: UpdaterManager? = nil) {
         self.preferences = preferences
+        self.updaterManager = updaterManager
     }
 
     func show() {
