@@ -1,0 +1,171 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  APP_NAME: AutoClip
+  BUNDLE: build/AutoClip.app
+
+jobs:
+  release:
+    runs-on: macos-14
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/v}"
+          echo "tag_version=$TAG" >> "$GITHUB_OUTPUT"
+
+          PLIST_VERSION=$(/usr/libexec/PlistBuddy -c \
+            "Print :CFBundleShortVersionString" AutoClip/Info.plist)
+          echo "plist_version=$PLIST_VERSION" >> "$GITHUB_OUTPUT"
+
+          if [ "$TAG" != "$PLIST_VERSION" ]; then
+            echo "::error::Tag v$TAG does not match Info.plist version $PLIST_VERSION"
+            exit 1
+          fi
+
+      - name: Build
+        run: |
+          swift build -c release
+          BIN_PATH=$(swift build -c release --show-bin-path)
+
+          mkdir -p "$BUNDLE/Contents/MacOS" "$BUNDLE/Contents/Resources" \
+                   "$BUNDLE/Contents/Frameworks"
+
+          cp AutoClip/Info.plist "$BUNDLE/Contents/"
+          cp AutoClip/Resources/AppIcon.icns "$BUNDLE/Contents/Resources/"
+          cp AutoClip/Resources/MenuBarIcon.svg "$BUNDLE/Contents/Resources/"
+          cp "$BIN_PATH/$APP_NAME" "$BUNDLE/Contents/MacOS/"
+
+          # Embed Sparkle.framework
+          cp -R "$BIN_PATH/Sparkle.framework" "$BUNDLE/Contents/Frameworks/"
+          rm -rf "$BUNDLE/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices"
+          install_name_tool -add_rpath @loader_path/../Frameworks \
+            "$BUNDLE/Contents/MacOS/$APP_NAME" 2>/dev/null || true
+
+      - name: Import Developer ID certificate
+        env:
+          CERT_BASE64: ${{ secrets.DEVELOPER_ID_CERT_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.DEVELOPER_ID_CERT_PASSWORD }}
+        run: |
+          CERT_PATH="$RUNNER_TEMP/certificate.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain"
+
+          echo "$CERT_BASE64" | base64 --decode > "$CERT_PATH"
+
+          security create-keychain -p "" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -P "$CERT_PASSWORD" \
+            -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -k "" \
+            "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain
+
+          IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" \
+            | grep "Developer ID Application" | head -1 \
+            | sed 's/.*"\(.*\)".*/\1/')
+          echo "CODESIGN_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
+
+      - name: Sign app bundle
+        run: |
+          SIGN="$CODESIGN_IDENTITY"
+          OPTS="--force --options runtime --timestamp"
+
+          codesign $OPTS --sign "$SIGN" \
+            "$BUNDLE/Contents/Frameworks/Sparkle.framework/Versions/B/Autoupdate"
+          codesign $OPTS --sign "$SIGN" \
+            "$BUNDLE/Contents/Frameworks/Sparkle.framework/Versions/B/Updater.app"
+          codesign $OPTS --sign "$SIGN" \
+            "$BUNDLE/Contents/Frameworks/Sparkle.framework"
+          codesign $OPTS --sign "$SIGN" "$BUNDLE"
+
+          codesign --verify --deep --strict "$BUNDLE"
+          echo "Signing verified"
+
+      - name: Notarize
+        env:
+          APPLE_ID: ${{ secrets.NOTARIZATION_APPLE_ID }}
+          TEAM_ID: ${{ secrets.NOTARIZATION_TEAM_ID }}
+          APP_PASSWORD: ${{ secrets.NOTARIZATION_PASSWORD }}
+        run: |
+          ditto -c -k --keepParent "$BUNDLE" "$APP_NAME.zip"
+
+          xcrun notarytool submit "$APP_NAME.zip" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$TEAM_ID" \
+            --password "$APP_PASSWORD" \
+            --wait
+
+          xcrun stapler staple "$BUNDLE"
+
+          rm "$APP_NAME.zip"
+          ditto -c -k --keepParent "$BUNDLE" "$APP_NAME.zip"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          gh release create "$TAG_NAME" "$APP_NAME.zip" \
+            --title "$APP_NAME ${{ steps.version.outputs.tag_version }}" \
+            --generate-notes
+
+      - name: Update Sparkle appcast
+        env:
+          SPARKLE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.tag_version }}"
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          REPO="${GITHUB_REPOSITORY}"
+          DOWNLOAD_URL="https://github.com/$REPO/releases/download/$TAG_NAME/$APP_NAME.zip"
+
+          # Sign the update archive with EdDSA
+          BIN_PATH=$(swift build -c release --show-bin-path)
+          SIGN_UPDATE="${BIN_PATH}/../../../artifacts/sparkle/Sparkle/bin/sign_update"
+          SIGNATURE=$(echo "$SPARKLE_KEY" | "$SIGN_UPDATE" "$APP_NAME.zip" --ed-key-file -)
+
+          # Clone gh-pages
+          git clone --branch gh-pages --single-branch \
+            "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" \
+            gh-pages-checkout
+
+          cat > gh-pages-checkout/appcast.xml << APPCAST_EOF
+          <?xml version="1.0" encoding="utf-8"?>
+          <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+            <channel>
+              <title>$APP_NAME Updates</title>
+              <link>https://jspiro.github.io/AutoClip/appcast.xml</link>
+              <description>Most recent changes with links to updates.</description>
+              <language>en</language>
+              <item>
+                <title>$APP_NAME $VERSION</title>
+                <pubDate>$(date -R)</pubDate>
+                <sparkle:version>$VERSION</sparkle:version>
+                <sparkle:shortVersionString>$VERSION</sparkle:shortVersionString>
+                <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+                <enclosure url="$DOWNLOAD_URL"
+                  $SIGNATURE
+                  type="application/octet-stream"/>
+              </item>
+            </channel>
+          </rss>
+          APPCAST_EOF
+
+          cd gh-pages-checkout
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add appcast.xml
+          git commit -m "Update appcast for v$VERSION"
+          git push
