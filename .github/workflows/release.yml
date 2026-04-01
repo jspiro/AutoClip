@@ -43,9 +43,13 @@ jobs:
                    "$BUNDLE/Contents/Frameworks"
 
           cp AutoClip/Info.plist "$BUNDLE/Contents/"
-          cp AutoClip/Resources/AppIcon.icns "$BUNDLE/Contents/Resources/"
           cp AutoClip/Resources/MenuBarIcon.svg "$BUNDLE/Contents/Resources/"
           cp "$BIN_PATH/$APP_NAME" "$BUNDLE/Contents/MacOS/"
+
+          # Compile .icon into Assets.car
+          xcrun actool --compile "$BUNDLE/Contents/Resources" \
+            --platform macosx --minimum-deployment-target 13.0 \
+            AutoClip.icon >/dev/null
 
           # Embed Sparkle.framework
           cp -R "$BIN_PATH/Sparkle.framework" "$BUNDLE/Contents/Frameworks/"
