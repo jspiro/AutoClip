@@ -24,10 +24,13 @@ When you're iterating on a UI with an AI coding assistant, the loop is:
 Step 3 is friction. AutoClip eliminates it — your screenshot is on the
 clipboard the instant it's saved. Just paste.
 
-**Why not Cmd+Ctrl+Shift+4 (screenshot to clipboard)?** That gives you image
-data, not a file. AI tools like Claude Code need a file path to read images.
-AutoClip gives you both — the file reference *and* the path — so it works
-everywhere: AI tools, Finder, Slack, terminal.
+**Why not Cmd+Ctrl+Shift+4 (screenshot to clipboard)?** That gives you
+image data, not a file — AI tools like Claude Code need a file path, and
+you lose the screenshot after pasting. AutoClip saves the file *and* puts
+it on the clipboard, so you keep a copy and can paste anywhere.
+
+It's also great for your **Downloads folder** — drop a file in and
+Cmd+Shift+V it into a conversation instantly.
 
 ## Install
 
