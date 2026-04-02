@@ -159,11 +159,11 @@ jobs:
           SIGN_UPDATE=$(find .build/artifacts -name sign_update -type f | head -1)
           SIGNATURE=$(echo "$SPARKLE_KEY" | "$SIGN_UPDATE" "$APP_NAME.zip" --ed-key-file -)
 
-          # Clone gh-pages using credential helper instead of token in URL
-          git clone --branch gh-pages --single-branch \
+          # Clone gh-pages with auth via extraheader
+          git -c "http.https://github.com/.extraheader=Authorization: basic $(echo -n "x-access-token:${GH_TOKEN}" | base64)" \
+            clone --branch gh-pages --single-branch \
             "https://github.com/${REPO}.git" gh-pages-checkout
           cd gh-pages-checkout
-          git -c "http.extraHeader=Authorization: token ${GH_TOKEN}" fetch
 
           cat > appcast.xml << APPCAST_EOF
           <?xml version="1.0" encoding="utf-8"?>
@@ -191,4 +191,4 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add appcast.xml
           git commit -m "Update appcast for v$VERSION"
-          git -c "http.extraHeader=Authorization: token ${GH_TOKEN}" push
+          git -c "http.https://github.com/.extraheader=Authorization: basic $(echo -n "x-access-token:${GH_TOKEN}" | base64)" push
