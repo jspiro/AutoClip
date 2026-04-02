@@ -7,12 +7,12 @@
     <language>en</language>
     <item>
       <title>AutoClip 1.0.0</title>
-      <pubDate>Thu, 02 Apr 2026 22:04:48 +0000</pubDate>
+      <pubDate>Thu, 02 Apr 2026 22:11:14 +0000</pubDate>
       <sparkle:version>1</sparkle:version>
       <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
       <enclosure url="https://github.com/jspiro/AutoClip/releases/download/v1.0.0/AutoClip.zip"
-        sparkle:edSignature="IyERh2FvzCzOMOjt1852JiaIjoqnqIQ4UStFFsenzBdkNrcGo+kkwK9poWhS9aLbP4fmbZI2uHerEWR+HgGRCg==" length="1133415"
+        sparkle:edSignature="LqFXbjLEfMnzGvSJ8iQza63gPR3lgq+s4BvemrG0EnO9IFE5YoHdvmXXp0wUJk4eoDphIvGhyxO9l46EDGXrCg==" length="1133387"
         type="application/octet-stream"/>
     </item>
   </channel>
