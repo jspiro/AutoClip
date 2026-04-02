@@ -11,11 +11,13 @@ ICON_SOURCE = $(shell python3 -c "import json; d=json.load(open('AutoClip.icon/i
 
 .PHONY: build dev install uninstall run clean icon secrets
 
-build:
+build: ## SPM release build + assemble .app bundle
 	swift build -c release
 	@mkdir -p $(CONTENTS)/MacOS $(CONTENTS)/Resources
 	@cp $(PLIST) $(CONTENTS)/
-	@# AppIcon loaded from Assets.car (compiled by 'icon' target)
+	@# Pre-built .icns committed to repo; actool can't compile .icon
+	@# packages in GitHub Actions CI (silently produces empty output)
+	@cp AutoClip/Resources/AppIcon.icns $(CONTENTS)/Resources/
 	@cp AutoClip/Resources/MenuBarIcon.svg $(CONTENTS)/Resources/
 	@cp $$(swift build -c release --show-bin-path)/$(APP_NAME) $(CONTENTS)/MacOS/
 	@# Embed Sparkle.framework
@@ -30,11 +32,11 @@ build:
 	@codesign -f -s - $(BUNDLE)
 	@echo "Built $(BUNDLE)"
 
-dev: icon
+dev: icon ## Build + icon + relaunch app
 	-@pkill -x $(APP_NAME) 2>/dev/null; sleep 0.5
 	open $(BUNDLE)
 
-install: icon
+install: icon ## Copy to /Applications and launch
 	-@pkill -x $(APP_NAME) 2>/dev/null; sleep 0.5
 	@mkdir -p $(INSTALL_DIR)
 	@rm -rf $(INSTALL_DIR)/$(APP_NAME).app
@@ -42,22 +44,27 @@ install: icon
 	@echo "Installed to $(INSTALL_DIR)/$(APP_NAME).app"
 	open $(INSTALL_DIR)/$(APP_NAME).app
 
-uninstall:
+uninstall: ## Remove from /Applications
 	-osascript -e 'tell application "$(APP_NAME)" to quit' 2>/dev/null
 	rm -rf $(INSTALL_DIR)/$(APP_NAME).app
 	@echo "Uninstalled"
 
-run: build
+run: build ## Build and open from build/
 	open $(BUNDLE)
 
-icon: build
-	@# Compile .icon package into Assets.car using Xcode's actool
+icon: build ## Compile .icon → Assets.car for richer icon (local only)
+	@# actool compiles the .icon package into Assets.car with dynamic
+	@# effects (glass, shadows). Only works locally — CI uses the
+	@# pre-built .icns from AutoClip/Resources/ instead.
 	@xcrun actool --compile $(CONTENTS)/Resources \
 	  --platform macosx --minimum-deployment-target 13.0 \
+	  --app-icon AutoClip \
+	  --output-partial-info-plist /dev/null \
 	  AutoClip.icon >/dev/null
+	@codesign -f -s - $(BUNDLE)
 	@echo "Compiled AutoClip.icon → Assets.car"
 
-secrets:
+secrets: ## Export Developer ID cert to GitHub Actions secrets
 	@# Export Developer ID cert and set all GitHub Actions secrets
 	@P12=$$(mktemp /tmp/devid.XXXX.p12); \
 	PASS=$$(openssl rand -base64 24); \
@@ -72,6 +79,6 @@ secrets:
 	@echo "  gh secret set NOTARIZATION_TEAM_ID"
 	@echo "  gh secret set NOTARIZATION_PASSWORD"
 
-clean:
+clean: ## Remove build/ and SPM cache
 	rm -rf build
 	swift package clean

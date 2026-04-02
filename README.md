@@ -30,7 +30,7 @@ git clone https://github.com/jspiro/AutoClip.git
 cd AutoClip
 make install
 ```
-Requires Xcode Command Line Tools (`xcode-select --install`).
+Requires Xcode 16+ (`xcode-select --install`).
 </details>
 
 ## Usage
