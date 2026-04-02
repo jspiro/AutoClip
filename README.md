@@ -1,5 +1,7 @@
 # AutoClip
 
+<img src="assets/icon.png" width="128" alt="AutoClip icon">
+
 **Screenshot → clipboard → paste into AI tools in one step.**
 
 A macOS menu bar app that watches folders for new files and automatically
@@ -10,8 +12,8 @@ folder by default. Also great for Downloads.
 ## Why not Cmd+Ctrl+Shift+4?
 
 That copies image data, not a file. AI tools like Claude Code need a file
-path, and you lose the screenshot after pasting. AutoClip saves the file
-*and* clips it, so you keep a copy and can paste anywhere.
+path, and you lose the screenshot after pasting. With AutoClip, the
+screenshot is saved to disk *and* on your clipboard — paste anywhere.
 
 ## Install
 
