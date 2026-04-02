@@ -2,7 +2,7 @@ APP_NAME = AutoClip
 BUNDLE = build/$(APP_NAME).app
 CONTENTS = $(BUNDLE)/Contents
 PLIST = AutoClip/Info.plist
-INSTALL_DIR = $(HOME)/Applications
+INSTALL_DIR = /Applications
 
 # SPM puts the release binary here
 SPM_BIN = $(shell swift build -c release --show-bin-path 2>/dev/null)
@@ -32,6 +32,10 @@ build:
 	@codesign -f -s - $(BUNDLE)
 	@echo "Built $(BUNDLE)"
 
+dev: icon
+	-@pkill -x $(APP_NAME) 2>/dev/null; sleep 0.5
+	open $(BUNDLE)
+
 install: icon
 	-@pkill -x $(APP_NAME) 2>/dev/null; sleep 0.5
 	@mkdir -p $(INSTALL_DIR)
@@ -39,7 +43,6 @@ install: icon
 	cp -R $(BUNDLE) $(INSTALL_DIR)/
 	@echo "Installed to $(INSTALL_DIR)/$(APP_NAME).app"
 	open $(INSTALL_DIR)/$(APP_NAME).app
-	@echo "Add to Login Items: System Settings > General > Login Items"
 
 uninstall:
 	-osascript -e 'tell application "$(APP_NAME)" to quit' 2>/dev/null

@@ -27,7 +27,10 @@ jobs:
 
           PLIST_VERSION=$(/usr/libexec/PlistBuddy -c \
             "Print :CFBundleShortVersionString" AutoClip/Info.plist)
+          BUILD_NUMBER=$(/usr/libexec/PlistBuddy -c \
+            "Print :CFBundleVersion" AutoClip/Info.plist)
           echo "plist_version=$PLIST_VERSION" >> "$GITHUB_OUTPUT"
+          echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
 
           if [ "$TAG" != "$PLIST_VERSION" ]; then
             echo "::error::Tag v$TAG does not match Info.plist version $PLIST_VERSION"
@@ -142,6 +145,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ steps.version.outputs.tag_version }}"
+          BUILD="${{ steps.version.outputs.build_number }}"
           TAG_NAME="${GITHUB_REF#refs/tags/}"
           REPO="${GITHUB_REPOSITORY}"
           DOWNLOAD_URL="https://github.com/$REPO/releases/download/$TAG_NAME/$APP_NAME.zip"
@@ -166,7 +170,7 @@ jobs:
               <item>
                 <title>$APP_NAME $VERSION</title>
                 <pubDate>$(date -R)</pubDate>
-                <sparkle:version>$VERSION</sparkle:version>
+                <sparkle:version>$BUILD</sparkle:version>
                 <sparkle:shortVersionString>$VERSION</sparkle:shortVersionString>
                 <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
                 <enclosure url="$DOWNLOAD_URL"
