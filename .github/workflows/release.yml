@@ -136,8 +136,7 @@ jobs:
           DOWNLOAD_URL="https://github.com/$REPO/releases/download/$TAG_NAME/$APP_NAME.zip"
 
           # Sign the update archive with EdDSA
-          BIN_PATH=$(swift build -c release --show-bin-path)
-          SIGN_UPDATE="${BIN_PATH}/../../../artifacts/sparkle/Sparkle/bin/sign_update"
+          SIGN_UPDATE=$(find .build/artifacts -name sign_update -type f | head -1)
           SIGNATURE=$(echo "$SPARKLE_KEY" | "$SIGN_UPDATE" "$APP_NAME.zip" --ed-key-file -)
 
           # Clone gh-pages

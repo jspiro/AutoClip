@@ -16,9 +16,12 @@ struct AboutSettingsView: View {
         VStack(spacing: 20) {
             // App info
             VStack(spacing: 8) {
-                Image(systemName: "doc.on.clipboard")
-                    .font(.system(size: 48))
-                    .foregroundColor(.accentColor)
+                // App icon from bundle
+                if let nsImage = NSApp.applicationIconImage {
+                    Image(nsImage: nsImage)
+                        .resizable()
+                        .frame(width: 96, height: 96)
+                }
 
                 Text("AutoClip")
                     .font(.title)
