@@ -6,13 +6,13 @@
     <description>Most recent changes with links to updates.</description>
     <language>en</language>
     <item>
-      <title>AutoClip 1.0.5</title>
-      <pubDate>Thu, 02 Apr 2026 20:04:08 +0000</pubDate>
-      <sparkle:version>6</sparkle:version>
-      <sparkle:shortVersionString>1.0.5</sparkle:shortVersionString>
+      <title>AutoClip 1.0.0</title>
+      <pubDate>Thu, 02 Apr 2026 20:23:28 +0000</pubDate>
+      <sparkle:version>1</sparkle:version>
+      <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-      <enclosure url="https://github.com/jspiro/AutoClip/releases/download/v1.0.5/AutoClip.zip"
-        sparkle:edSignature="0J0KQkPEhHYGRz/2iTPXyGwLPW1RBffVr4YxOdbMtOm86Ay7F++oXyXBkF9OGUxrkUFWmIGWzbkFO4jcNxQtDA==" length="2932400"
+      <enclosure url="https://github.com/jspiro/AutoClip/releases/download/v1.0.0/AutoClip.zip"
+        sparkle:edSignature="60hrr5bbhGfbUCKPId5LB/UiZvQ5+E9LlOgBAcP8tPbkWgCsoDVUJedCLYz7n1wAVL2Sprj/u9iHdjtiaF3uCQ==" length="2933223"
         type="application/octet-stream"/>
     </item>
   </channel>
