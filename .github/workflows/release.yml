@@ -49,7 +49,8 @@ jobs:
           # Compile .icon into Assets.car
           xcrun actool --compile "$BUNDLE/Contents/Resources" \
             --platform macosx --minimum-deployment-target 13.0 \
-            AutoClip.icon >/dev/null
+            AutoClip.icon
+          ls -la "$BUNDLE/Contents/Resources/"
 
           # Embed Sparkle.framework
           cp -R "$BIN_PATH/Sparkle.framework" "$BUNDLE/Contents/Frameworks/"
