@@ -2,7 +2,9 @@
 
 <img src="assets/icon.png" width="128" alt="AutoClip icon">
 
-**Screenshot → clipboard → paste into AI tools in one step.**
+**Screenshot/file → folder → clipboard → paste into app** but in one step!
+
+<img src="assets/menubar.png" width="400" alt="AutoClip menu bar">
 
 A macOS menu bar app that watches folders for new files and automatically
 copies them to the clipboard — the **file** (paste into Finder, Slack, AI

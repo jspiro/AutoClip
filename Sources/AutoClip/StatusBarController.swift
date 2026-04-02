@@ -63,6 +63,12 @@ class StatusBarController: NSObject, NSMenuDelegate {
                 item.attributedTitle = attrTitle
                 menu.addItem(item)
             }
+            let clearItem = NSMenuItem(
+                title: "Clear Recents",
+                action: #selector(clearRecents),
+                keyEquivalent: "")
+            clearItem.target = self
+            menu.addItem(clearItem)
             menu.addItem(.separator())
         } else {
             let empty = NSMenuItem(
@@ -107,6 +113,10 @@ class StatusBarController: NSObject, NSMenuDelegate {
         pb.writeObjects([url as NSURL])
         pb.addTypes([.string], owner: nil)
         pb.setString(path, forType: .string)
+    }
+
+    @objc private func clearRecents() {
+        preferences.recentlyCopied = []
     }
 
     @objc private func openPreferences() {
