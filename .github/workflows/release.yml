@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 env:
   APP_NAME: AutoClip
   BUNDLE: build/AutoClip.app
@@ -131,21 +135,22 @@ jobs:
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.tag_version }}
         run: |
           TAG_NAME="${GITHUB_REF#refs/tags/}"
           # Delete existing release if rerunning
           gh release delete "$TAG_NAME" --yes 2>/dev/null || true
           gh release create "$TAG_NAME" "$APP_NAME.zip" \
-            --title "$APP_NAME ${{ steps.version.outputs.tag_version }}" \
+            --title "$APP_NAME $VERSION" \
             --generate-notes
 
       - name: Update Sparkle appcast
         env:
           SPARKLE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.tag_version }}
+          BUILD: ${{ steps.version.outputs.build_number }}
         run: |
-          VERSION="${{ steps.version.outputs.tag_version }}"
-          BUILD="${{ steps.version.outputs.build_number }}"
           TAG_NAME="${GITHUB_REF#refs/tags/}"
           REPO="${GITHUB_REPOSITORY}"
           DOWNLOAD_URL="https://github.com/$REPO/releases/download/$TAG_NAME/$APP_NAME.zip"
@@ -154,12 +159,13 @@ jobs:
           SIGN_UPDATE=$(find .build/artifacts -name sign_update -type f | head -1)
           SIGNATURE=$(echo "$SPARKLE_KEY" | "$SIGN_UPDATE" "$APP_NAME.zip" --ed-key-file -)
 
-          # Clone gh-pages
+          # Clone gh-pages using credential helper instead of token in URL
           git clone --branch gh-pages --single-branch \
-            "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" \
-            gh-pages-checkout
+            "https://github.com/${REPO}.git" gh-pages-checkout
+          cd gh-pages-checkout
+          git -c "http.extraHeader=Authorization: token ${GH_TOKEN}" fetch
 
-          cat > gh-pages-checkout/appcast.xml << APPCAST_EOF
+          cat > appcast.xml << APPCAST_EOF
           <?xml version="1.0" encoding="utf-8"?>
           <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
             <channel>
@@ -181,9 +187,8 @@ jobs:
           </rss>
           APPCAST_EOF
 
-          cd gh-pages-checkout
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add appcast.xml
           git commit -m "Update appcast for v$VERSION"
-          git push
+          git -c "http.extraHeader=Authorization: token ${GH_TOKEN}" push

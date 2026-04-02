@@ -64,6 +64,7 @@ class SettingsWindowManager {
     func show() {
         // Temporarily become a regular app so the window can receive focus
         NSApp.setActivationPolicy(.regular)
+        ensureMainMenu()
         settingsWindowController.show()
         NSApp.activate(ignoringOtherApps: true)
 
@@ -84,5 +85,34 @@ class SettingsWindowManager {
 
     private func revertActivationPolicy() {
         NSApp.setActivationPolicy(.accessory)
+    }
+
+    /// LSUIElement apps have no menu bar — add one so Cmd+W works
+    private func ensureMainMenu() {
+        let mainMenu = NSMenu()
+
+        let appMenu = NSMenu()
+        appMenu.addItem(
+            NSMenuItem(
+                title: "Quit AutoClip",
+                action: #selector(NSApplication.terminate(_:)),
+                keyEquivalent: "q"))
+        let appItem = NSMenuItem()
+        appItem.submenu = appMenu
+        mainMenu.addItem(appItem)
+
+        let windowMenu = NSMenu(title: "Window")
+        windowMenu.addItem(
+            NSMenuItem(
+                title: "Close",
+                action: #selector(NSWindow.performClose(_:)),
+                keyEquivalent: "w"))
+        let windowItem = NSMenuItem()
+        windowItem.submenu = windowMenu
+        mainMenu.addItem(windowItem)
+
+        NSApp.mainMenu = mainMenu
+        // Keep menu bar hidden — Cmd+W still works via responder chain
+        NSApp.mainMenu?.items.forEach { $0.isHidden = true }
     }
 }

@@ -9,9 +9,7 @@ SPM_BIN = $(shell swift build -c release --show-bin-path 2>/dev/null)
 
 ICON_SOURCE = $(shell python3 -c "import json; d=json.load(open('AutoClip.icon/icon.json')); print(d['groups'][0]['layers'][0]['image-name'])" 2>/dev/null)
 
-CODESIGN_IDENTITY = Developer ID Application: Jono Spiro (QZEHRZT694)
-
-.PHONY: build install uninstall run clean icon secrets
+.PHONY: build dev install uninstall run clean icon secrets
 
 build:
 	swift build -c release
