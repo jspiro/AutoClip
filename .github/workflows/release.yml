@@ -121,6 +121,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG_NAME="${GITHUB_REF#refs/tags/}"
+          # Delete existing release if rerunning
+          gh release delete "$TAG_NAME" --yes 2>/dev/null || true
           gh release create "$TAG_NAME" "$APP_NAME.zip" \
             --title "$APP_NAME ${{ steps.version.outputs.tag_version }}" \
             --generate-notes
