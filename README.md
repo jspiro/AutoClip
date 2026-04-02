@@ -1,16 +1,16 @@
 # AutoClip
 
-**Screenshot → clipboard → paste into Claude Code in one step.**
-
-Take a screenshot of your app, and it's instantly on your clipboard — ready to
-paste into Claude Code (or any AI tool) for feedback, debugging, and iteration.
-No manual file-finding, no drag-and-drop, no extra steps.
+**Screenshot → clipboard → paste into AI tools in one step.**
 
 AutoClip is a macOS menu bar app that watches folders for new files and
 automatically copies them to the clipboard — both the **file** (for pasting
 into Finder, Slack, etc.) and the **full path** (for `pbpaste` in the terminal).
 
-By default it watches your screenshot folder. Zero CPU usage between events.
+Take a screenshot of your app, and it's instantly on your clipboard — ready to
+paste into Claude Code (or any AI tool) for feedback, debugging, and iteration.
+No manual file-finding, no drag-and-drop, no extra steps.
+
+By default it watches your screenshot folder.
 
 ## Why
 
@@ -23,6 +23,11 @@ When you're iterating on a UI with an AI coding assistant, the loop is:
 
 Step 3 is friction. AutoClip eliminates it — your screenshot is on the
 clipboard the instant it's saved. Just paste.
+
+**Why not Cmd+Ctrl+Shift+4 (screenshot to clipboard)?** That gives you image
+data, not a file. AI tools like Claude Code need a file path to read images.
+AutoClip gives you both — the file reference *and* the path — so it works
+everywhere: AI tools, Finder, Slack, terminal.
 
 ## Install
 
