@@ -54,6 +54,7 @@ struct AboutSettingsView: View {
             }
         }
         .padding(20)
-        .frame(width: 580, height: 230, alignment: .top)
+        .frame(width: 580, alignment: .top)
+        .fixedSize(horizontal: false, vertical: true)
     }
 }
