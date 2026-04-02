@@ -52,7 +52,18 @@ uninstall: ## Remove from /Applications
 run: build ## Build and open from build/
 	open $(BUNDLE)
 
-icon: build ## Compile .icon → Assets.car for richer icon (local only)
+# Regenerate committed .icns when .icon source changes
+AutoClip/Resources/AppIcon.icns: AutoClip.icon/icon.json AutoClip.icon/Assets/$(ICON_SOURCE)
+	@xcrun actool --compile /tmp/autoclip-icon-out \
+	  --platform macosx --minimum-deployment-target 13.0 \
+	  --app-icon AutoClip \
+	  --output-partial-info-plist /dev/null \
+	  AutoClip.icon >/dev/null
+	@cp /tmp/autoclip-icon-out/AutoClip.icns $@
+	@rm -rf /tmp/autoclip-icon-out
+	@echo "Regenerated $@ from AutoClip.icon"
+
+icon: build AutoClip/Resources/AppIcon.icns ## Compile .icon → Assets.car (local only)
 	@# actool compiles the .icon package into Assets.car with dynamic
 	@# effects (glass, shadows). Only works locally — CI uses the
 	@# pre-built .icns from AutoClip/Resources/ instead.
