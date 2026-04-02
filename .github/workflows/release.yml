@@ -46,11 +46,19 @@ jobs:
           cp AutoClip/Resources/MenuBarIcon.svg "$BUNDLE/Contents/Resources/"
           cp "$BIN_PATH/$APP_NAME" "$BUNDLE/Contents/MacOS/"
 
-          # Compile .icon into Assets.car
-          xcrun actool --compile "$BUNDLE/Contents/Resources" \
-            --platform macosx --minimum-deployment-target 13.0 \
-            AutoClip.icon
-          ls -la "$BUNDLE/Contents/Resources/"
+          # Generate .icns from .icon source image
+          ICON_IMG=$(python3 -c "import json; d=json.load(open('AutoClip.icon/icon.json')); print(d['groups'][0]['layers'][0]['image-name'])")
+          ICON_SRC="AutoClip.icon/Assets/$ICON_IMG"
+          ICONSET=$(mktemp -d)/AppIcon.iconset
+          mkdir -p "$ICONSET"
+          for s in 16 32 128 256 512; do
+            s2=$((s*2))
+            cp "$ICON_SRC" "$ICONSET/icon_${s}x${s}.png"
+            sips --resampleHeightWidth $s $s "$ICONSET/icon_${s}x${s}.png" >/dev/null
+            cp "$ICON_SRC" "$ICONSET/icon_${s}x${s}@2x.png"
+            sips --resampleHeightWidth $s2 $s2 "$ICONSET/icon_${s}x${s}@2x.png" >/dev/null
+          done
+          iconutil -c icns "$ICONSET" -o "$BUNDLE/Contents/Resources/AppIcon.icns"
 
           # Embed Sparkle.framework
           cp -R "$BIN_PATH/Sparkle.framework" "$BUNDLE/Contents/Frameworks/"
