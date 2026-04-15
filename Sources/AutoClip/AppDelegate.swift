@@ -65,12 +65,18 @@ class AppDelegate: NSObject, NSApplicationDelegate,
     }
 
     private var hasFinishedFirstLaunch = false
+    // Suppress settings window when app activates from notification click
+    private var handlingNotification = false
 
     func applicationShouldHandleReopen(
         _ sender: NSApplication, hasVisibleWindows flag: Bool
     ) -> Bool {
         guard hasFinishedFirstLaunch else { return false }
-        settingsWindowManager.show()
+        // Delay so didReceive can set handlingNotification first
+        DispatchQueue.main.async {
+            guard !self.handlingNotification else { return }
+            self.settingsWindowManager.show()
+        }
         return false
     }
 
@@ -88,6 +94,10 @@ class AppDelegate: NSObject, NSApplicationDelegate,
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
+        handlingNotification = true
+        defer {
+            DispatchQueue.main.async { self.handlingNotification = false }
+        }
         let userInfo = response.notification.request.content.userInfo
         if let path = userInfo["filePath"] as? String {
             let url = URL(fileURLWithPath: path)
