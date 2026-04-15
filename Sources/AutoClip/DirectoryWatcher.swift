@@ -86,7 +86,7 @@ class DirectoryWatcher {
         copyToClipboard(path: fullPath)
 
         let filename = URL(fileURLWithPath: fullPath).lastPathComponent
-        showNotification(filename: filename)
+        showNotification(filename: filename, path: fullPath)
         NSLog("AutoClip: copied %@", filename)
 
         onFileCopied?(fullPath)
@@ -103,11 +103,12 @@ class DirectoryWatcher {
         pb.setString(path, forType: .string)
     }
 
-    private func showNotification(filename: String) {
+    private func showNotification(filename: String, path: String) {
         guard Bundle.main.bundleIdentifier != nil else { return }
         let content = UNMutableNotificationContent()
         content.title = "Copied to clipboard"
         content.body = filename
+        content.userInfo = ["filePath": path]
 
         let request = UNNotificationRequest(
             identifier: UUID().uuidString,

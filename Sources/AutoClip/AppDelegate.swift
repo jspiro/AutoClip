@@ -82,4 +82,19 @@ class AppDelegate: NSObject, NSApplicationDelegate,
     ) {
         completionHandler([.banner])
     }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        let userInfo = response.notification.request.content.userInfo
+        if let path = userInfo["filePath"] as? String {
+            let url = URL(fileURLWithPath: path)
+            if FileManager.default.fileExists(atPath: path) {
+                NSWorkspace.shared.activateFileViewerSelecting([url])
+            }
+        }
+        completionHandler()
+    }
 }
