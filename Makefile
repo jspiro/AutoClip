@@ -15,6 +15,13 @@ build: ## SPM release build + assemble .app bundle
 	swift build -c release
 	@mkdir -p $(CONTENTS)/MacOS $(CONTENTS)/Resources
 	@cp $(PLIST) $(CONTENTS)/
+	@# Local dev: suffix bundle ID so TCC grants (and Sparkle auto-updates)
+	@# don't collide with the installed release. CI keeps production ID.
+	@if [ -z "$(CI)" ]; then \
+		/usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier net.lostinrecursion.AutoClip.dev" $(CONTENTS)/Info.plist; \
+		/usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName AutoClip Dev" $(CONTENTS)/Info.plist; \
+		echo "Local build: using bundle ID net.lostinrecursion.AutoClip.dev"; \
+	fi
 	@# Pre-built .icns committed to repo; actool can't compile .icon
 	@# packages in GitHub Actions CI (silently produces empty output)
 	@cp AutoClip/Resources/AppIcon.icns $(CONTENTS)/Resources/
