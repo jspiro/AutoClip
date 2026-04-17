@@ -65,18 +65,21 @@ class AppDelegate: NSObject, NSApplicationDelegate,
     }
 
     private var hasFinishedFirstLaunch = false
-    // Suppress settings window when app activates from notification click
-    private var handlingNotification = false
+    // Set synchronously in didReceive; consumed by applicationShouldHandleReopen.
+    // For an already-running app, the notification-response callback fires
+    // BEFORE the reopen handler, so a plain flag is race-free (no dispatch
+    // delay needed). Pattern from exelban/Stats.
+    private var clickInNotification = false
 
     func applicationShouldHandleReopen(
         _ sender: NSApplication, hasVisibleWindows flag: Bool
     ) -> Bool {
-        guard hasFinishedFirstLaunch else { return false }
-        // Delay so didReceive can set handlingNotification first
-        DispatchQueue.main.async {
-            guard !self.handlingNotification else { return }
-            self.settingsWindowManager.show()
+        if clickInNotification {
+            clickInNotification = false
+            return false
         }
+        guard hasFinishedFirstLaunch else { return false }
+        settingsWindowManager.show()
         return false
     }
 
@@ -94,10 +97,7 @@ class AppDelegate: NSObject, NSApplicationDelegate,
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
-        handlingNotification = true
-        defer {
-            DispatchQueue.main.async { self.handlingNotification = false }
-        }
+        clickInNotification = true
         let userInfo = response.notification.request.content.userInfo
         if let path = userInfo["filePath"] as? String {
             let url = URL(fileURLWithPath: path)
